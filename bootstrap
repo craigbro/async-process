@@ -1,4 +1,7 @@
 #!/bin/sh
+export AUTOMAKE_VERSION=1.15
+export AUTOCONF_VERSION=2.69
+
 libtoolize
 aclocal
 autoheader

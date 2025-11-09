@@ -1,6 +1,9 @@
+ACLOCAL_AMFLAGS = -I m4
+AUTOMAKE_OPTIONS = subdir-objects
+
 pkglib_LTLIBRARIES = libasyncprocess.la
 libasyncprocess_la_LDFLAGS = -module -avoid-version -no-undefined
-libasyncprocess_la_SOURCES = src/async-process.c src/async-process_windows.c
+libasyncprocess_la_SOURCES = src/async-process.c
 
 copy:
 	$(MKDIR_P) static/`uname -m`/`uname`
@@ -10,7 +13,8 @@ copy:
 	  MINGW32)           \
             $(MKDIR_P) static/x86/windows ;\
 	    cp -f .libs/libasyncprocess.dll static/x86/windows/libasyncprocess.dll|true;; \
-	  *)                 \
+	  *) \
+            echo "MSYSTEM: $(MSYSTEM)";\
             $(MKDIR_P) static/`uname -m`/windows ;\
 	    cp -f .libs/libasyncprocess.dll static/`uname -m`/windows/libasyncprocess.dll|true;; \
 	esac
