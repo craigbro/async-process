@@ -2,7 +2,11 @@
 
 static const char* open_pty(int *out_fd)
 {
+  #ifdef HAVE_POSIX_OPENPT_O_CLOEXEC
   int fd = posix_openpt(O_RDWR | O_CLOEXEC | O_NOCTTY);
+  #else
+  int fd = posix_openpt(O_RDWR | O_NOCTTY);
+  #endif
   if (fd < 0) return NULL;
   if (grantpt(fd) == -1 || unlockpt(fd) == -1) return NULL;
   fcntl(fd, F_SETFD, FD_CLOEXEC);

@@ -1,5 +1,5 @@
 (defpackage :async-process
-  (:use :cl)
+  (:use :cl :uiop)
   (:export
    :delete-process
    :process-send-input
@@ -17,7 +17,7 @@
                            "ldd /bin/ls |grep musl"
                            :ignore-error-status t
                            :output :string)))))))
-
+;; Add any pre-built libraries to the path
 (pushnew (asdf:system-relative-pathname
           :async-process
           (format nil "../static/~A/"
@@ -35,8 +35,14 @@
          cffi:*foreign-library-directories*
          :test #'uiop:pathname-equal)
 
+(pushnew (asdf:system-relative-pathname
+          :async-process
+          (format nil "../.libs/")) ;; needs a / at end
+	 cffi:*foreign-library-directories*
+         :test #'uiop:pathname-equal)
+
 (cffi:define-foreign-library async-process
-  (:unix "libasyncprocess.so")
+    (:unix "libasyncprocess.so")
   (:windows "libasyncprocess.dll"))
 
 (cffi:use-foreign-library async-process)
