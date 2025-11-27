@@ -6,21 +6,9 @@
 .libs
 
 Makefile
-Makefile.in
-configure
 config.status
-config.guess
-config.sub
 config.h
-config.h.in
-install-sh
-missing
-compile
-aclocal.m4
 autom4te.cache
 stamp-h1
-depcomp
 config.log
-libtool
-ltmain.sh
 
