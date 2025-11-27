@@ -1,7 +1,7 @@
 (defpackage :async-process
   (:use :cl :uiop)
   (:export
-   :delete-process
+   :delete-processOA
    :process-send-input
    :process-receive-output
    :process-alive-p
@@ -16,7 +16,33 @@
       (not (zerop (length (uiop:run-program
                            "ldd /bin/ls |grep musl"
                            :ignore-error-status t
-                           :output :string)))))))
+                           :output :string))))))
+  (defun try-load-libasyncprocess ()
+    (handler-case
+	(cffi:use-foreign-library async-process)
+      (cffi:load-foreign-library-error (e)
+        nil)))
+
+  (defun build-libasyncprocess ()
+    (let* ((build-dir (asdf:system-relative-pathname :async-process ".."))
+           (build-cmd (format nil "cd ~A; ./configure && make" build-dir)))
+      (multiple-value-bind (out err ecode)
+          (uiop:run-program build-cmd
+                            :output :interactive
+                            :error-output :output)
+	(if (= 0 ecode)
+            t
+            (progn
+              (format *error-output* "Unable to build libasyncprocess")
+              nil)))))
+
+  (defun ensure-asyncprocess-lib ()
+    (if (not (cffi:foreign-library-loaded-p 'async-process))
+	(progn
+          ;; try loading a pre-built library first
+          (or (try-load-libasyncprocess)
+              (and (build-libasyncprocess) (try-load-libasyncprocess))))
+	t)))
 ;; Add any pre-built libraries to the path
 (pushnew (asdf:system-relative-pathname
           :async-process
@@ -33,19 +59,20 @@
                                           "Linux-musl")
                                          (t os))))))))
          cffi:*foreign-library-directories*
-         :test #'uiop:pathname-equal)
+         :test #'uiop:pathname-equal)f
 
+;; Add the directory that a on-demand build/compile step will produce
 (pushnew (asdf:system-relative-pathname
           :async-process
           (format nil "../.libs/")) ;; needs a / at end
-	 cffi:*foreign-library-directories*
+         cffi:*foreign-library-directories*
          :test #'uiop:pathname-equal)
 
 (cffi:define-foreign-library async-process
-    (:unix "libasyncprocess.so")
+  (:unix "libasyncprocess.so")
   (:windows "libasyncprocess.dll"))
 
-(cffi:use-foreign-library async-process)
+(ensure-asyncprocess-lib)
 
 (defclass process ()
   ((process :reader process-process :initarg :process)
